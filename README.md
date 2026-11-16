@@ -27,6 +27,16 @@ python3 scripts/walkthrough.py --workflow compare-renders
 
 脚本在临时状态目录启动实际服务，通过 HTTP 完成操作后停止服务，输出任务状态和 PNG 摘要；`--out` 保存可查看的合成示例。恢复流程会强制结束脚本自己启动的服务进程，再验证恢复结果。所有工作流编号见 `.project-manifest.json`。
 
+## 容量验证
+
+```sh
+python3 scripts/capacity_validation.py
+# 或
+make capacity
+```
+
+对真实 HTTP 进程施加可重复的混合负载（小场景、大覆盖图层、高倍输出与越预算请求），验证 64 槽有界队列与 4 千万图层像素预算：观察接受、429 拒绝、排队/运行取消与重试，确认过载不产生无收据任务、不拖死健康查询，被拒请求用相同键在容量恢复后可重试成功，并在 SIGKILL 重启后对账收据集合、任务终态与实际 PNG 摘要。脚本输出 JSON 报告（含延迟分位、峰值 RSS、状态文件体积）和明确的 PASS/FAIL 依据，断言失败时退出码非零。详见 `docs/capacity.md`。
+
 ## 场景到结果
 
 1. `PUT /v1/scenes/emblem`，提交名称、`expectedRevision: 0` 和 `document`。示例见 `examples/emblem.json`。
